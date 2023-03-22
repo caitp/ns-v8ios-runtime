@@ -2709,7 +2709,8 @@
 					"-ltorque_generated_initializers",
 					"-ltorque_generated_definitions",
 					"-lv8_heap_base",
-					"-linspector_protocol",
+					"-lcrdtp",
+					"-lcrdtp_platform",
 					"-linspector",
 					"-linspector_string_conversions",
 				);
@@ -2787,7 +2788,8 @@
 					"-ltorque_generated_initializers",
 					"-ltorque_generated_definitions",
 					"-lv8_heap_base",
-					"-linspector_protocol",
+					"-lcrdtp",
+					"-lcrdtp_platform",
 					"-linspector",
 					"-linspector_string_conversions",
 				);
