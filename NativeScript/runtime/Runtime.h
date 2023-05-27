@@ -7,6 +7,8 @@
 #include "MetadataBuilder.h"
 #include "SpinLock.h"
 
+#include "cppgc/default-platform.h"
+
 namespace tns {
 
 class Runtime {
@@ -39,6 +41,10 @@ public:
     
     static Runtime* GetRuntime(v8::Isolate* isolate);
 
+    v8::CppHeap* GetCppHeap() {
+        return isolate_->GetCppHeap();
+    }
+
     static bool IsWorker() {
         if (currentRuntime_ == nullptr) {
             return false;
@@ -47,16 +53,21 @@ public:
         return currentRuntime_->IsRuntimeWorker();
     }
 
-    static std::shared_ptr<v8::Platform> GetPlatform() {
-        return platform_;
+    static v8::Platform* GetPlatform() {
+        return platform_->GetV8Platform();
     }
 
+    static std::shared_ptr<cppgc::Platform> GetCppgcPlatform() {
+        return platform_;
+    }
+    
     static id GetAppConfigValue(std::string key);
 
     static bool IsAlive(const v8::Isolate* isolate);
+
 private:
     static thread_local Runtime* currentRuntime_;
-    static std::shared_ptr<v8::Platform> platform_;
+    static std::shared_ptr<cppgc::DefaultPlatform> platform_;
     static std::vector<v8::Isolate*> isolates_;
     static SpinMutex isolatesMutex_;
     static bool v8Initialized_;

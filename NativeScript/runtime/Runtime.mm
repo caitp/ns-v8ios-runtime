@@ -99,9 +99,12 @@ Isolate* Runtime::CreateIsolate() {
     //     ? v8_inspector::V8InspectorPlatform::CreateDefaultPlatform()
     //     : platform::NewDefaultPlatform();
 
-        Runtime::platform_ = platform::NewDefaultPlatform();
+        //Runtime::platform_ = platform::NewDefaultPlatform();
+        Runtime::platform_ = std::make_shared<cppgc::DefaultPlatform>();
 
-        V8::InitializePlatform(Runtime::platform_.get());
+        V8::InitializePlatform(Runtime::GetPlatform());
+        cppgc::InitializeProcess(Runtime::platform_->GetPageAllocator());
+
         std::string flags = RuntimeConfig.IsDebug
         ? "--expose_gc --jitless --no-freeze_flags_after_init"
         : "--expose_gc --jitless --no-lazy --freeze_flags_after_init=false";
@@ -114,7 +117,15 @@ Isolate* Runtime::CreateIsolate() {
 
     Isolate::CreateParams create_params;
     create_params.array_buffer_allocator = &allocator_;
+
+    std::unique_ptr<v8::CppHeap> cpp_heap = v8::CppHeap::Create(Runtime::GetPlatform(), {
+        /* std::vector<std::unique_ptr<cppgc::CustomSpaceBase>> custom_spaces */
+        {},
+        /* WrapperDescriptor wrapper_descriptor */
+        kGarbageCollectedWrapperDescriptor,
+    });
     Isolate* isolate = Isolate::New(create_params);
+    isolate->AttachCppHeap(cpp_heap.release());
     runtimeLoop_ = CFRunLoopGetCurrent();
     isolate->SetData(Constants::RUNTIME_SLOT, this);
 
@@ -289,7 +300,7 @@ bool Runtime::IsAlive(const Isolate* isolate) {
     return std::find(Runtime::isolates_.begin(), Runtime::isolates_.end(), isolate) != Runtime::isolates_.end();
 }
 
-std::shared_ptr<Platform> Runtime::platform_;
+std::shared_ptr<cppgc::DefaultPlatform> Runtime::platform_;
 std::vector<Isolate*> Runtime::isolates_;
 bool Runtime::v8Initialized_ = false;
 thread_local Runtime* Runtime::currentRuntime_ = nullptr;
