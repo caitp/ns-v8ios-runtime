@@ -11,6 +11,11 @@
 
 namespace tns {
 
+static constexpr int kEmbedderNativeScript = 0x6E53;
+
+class BaseDataWrapper;
+class WorkerHolder;
+class WorkerHolderData;
 class Runtime {
 public:
     Runtime();
